@@ -20,10 +20,6 @@ const TabIcon = ({
 }) => {
   const { session } = useSessionStore();
 
-  if (!session || new Date() >= new Date(session.ein + session.iat)) {
-    return <Redirect href={'/sign-in'} />;
-  }
-
   const setLocations = useLocationStore((state) => state.setLocations);
   const { data, error, status } = useQuery({
     queryKey: ['locations'],
@@ -43,42 +39,48 @@ const TabIcon = ({
   });
 
   useEffect(() => {
-    if (status === 'success') {
-      if (data === undefined) {
-        Toast.show({
-          type: 'error',
-          text1: 'Error',
-          text2: 'Error occurred while following location. Please try again later.',
-        });
-        return;
+    if (!session || new Date() >= new Date(session.ein + session.iat)) {
+      if (status === 'success') {
+        if (data === undefined) {
+          Toast.show({
+            type: 'error',
+            text1: 'Error',
+            text2: 'Error occurred while following location. Please try again later.',
+          });
+          return;
+        }
+        if (data.status === 200) {
+          setLocations(data.message);
+          return;
+        } else if (data.status === 400) {
+          Toast.show({
+            type: 'error',
+            text1: 'Invalid Request',
+            text2: 'Please try again later with proper information.',
+          });
+        } else {
+          Toast.show({
+            type: 'error',
+            text1: 'Error',
+            text2: 'Error occurred while following location. Please try again later.',
+          });
+        }
       }
-      if (data.status === 200) {
-        setLocations(data.message);
-        return;
-      } else if (data.status === 400) {
-        Toast.show({
-          type: 'error',
-          text1: 'Invalid Request',
-          text2: 'Please try again later with proper information.',
-        });
-      } else {
-        Toast.show({
-          type: 'error',
-          text1: 'Error',
-          text2: 'Error occurred while following location. Please try again later.',
-        });
-      }
-    }
 
-    if (status === 'error') {
-      console.log(error);
-      Toast.show({
-        type: 'error',
-        text1: 'Error',
-        text2: 'Error occurred while following location. Please try again later.',
-      });
+      if (status === 'error') {
+        console.log(error);
+        Toast.show({
+          type: 'error',
+          text1: 'Error',
+          text2: 'Error occurred while following location. Please try again later.',
+        });
+      }
     }
-  }, [status, data]);
+  }, [status, data, session]);
+
+  if (!session || new Date() >= new Date(session.ein + session.iat)) {
+    return <Redirect href={'/sign-in'} />;
+  }
 
   return (
     <View className="flex items-center justify-center gap-2">

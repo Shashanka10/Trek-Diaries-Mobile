@@ -25,6 +25,14 @@ export default function RootLayout() {
   const { setSession } = useSessionStore();
 
   useEffect(() => {
+    if (error) throw error;
+    
+    if (fontsLoaded) {
+      SplashScreen.hideAsync();
+    }
+  }, [fontsLoaded, error]);
+  
+  useEffect(() => {
     (async () => {
       const session = await getStorateItemAsync('session');
       if (session) {
@@ -32,15 +40,7 @@ export default function RootLayout() {
       }
     })();
   }, []);
-
-  useEffect(() => {
-    if (error) throw error;
-
-    if (fontsLoaded) {
-      SplashScreen.hideAsync();
-    }
-  }, [fontsLoaded, error]);
-
+  
   if (!fontsLoaded && !error) {
     return null;
   }
